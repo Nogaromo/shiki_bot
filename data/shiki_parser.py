@@ -45,10 +45,13 @@ class Shikiparser():
     async def get_page_data(self, session, url):
         async with session.get(url=url, headers=self.headers) as response:
             response_text = await response.text()
+            print(response.status)
             epn = None
             el_k = -1
             rating = -1
             soup = BeautifulSoup(response_text, 'lxml')
+            h1 = soup.find('h1').text
+            print(h1)
             info = soup.find('div', class_='b-entry-info')
             anime_info_1 = info.find_all('div', class_='key')
             anime_info_2 = info.find_all('div', class_='value')
@@ -92,7 +95,7 @@ class Shikiparser():
                 task = asyncio.create_task(self.get_page_data(session, url))
                 page_number += 1
                 tasks.append(task)
-                await asyncio.sleep(1.33)
+                await asyncio.sleep(1.35)
             await asyncio.gather(*tasks)
 
     @property
