@@ -1,9 +1,10 @@
+from datetime import datetime, timedelta
+import os
+import json
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher, FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils import executor
-import os
-import json
 from aiogram.dispatcher.filters import Text
 from data import predict_anime_score, shiki_parser
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -37,7 +38,10 @@ async def commands_start(message: types.Message):
 
 @dp.message_handler(Text(equals='Исходный код'))
 async def hello1(message: types.Message):
-    await message.answer('https://github.com/Nogaromo/shiki_bot')
+    start_buttons = ['Найти', 'Загрузить', 'Исходный код']
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add(*start_buttons)
+    await message.answer('https://github.com/Nogaromo/shiki_bot', reply_markup=keyboard)
 
 
 @dp.message_handler(Text(equals='Загрузить'), state=None)
@@ -52,8 +56,9 @@ async def nick_got(message: types.Message, state: FSMContext):
         data['nick'] = message.text
     nick = data['nick']
     print(nick)
-    await message.answer('Начинаем обработку списка')
-    await shiki_parser.Shikiparser(nick=nick).do()
+    msg = await message.answer('Начинаем обработку списка')
+    print(msg.message_id)
+    await shiki_parser.Shikiparser(nick=nick).do(bot, msg)
     await Nickname.next()
     await message.answer('Введите ссылку')
 
@@ -65,9 +70,13 @@ async def url_got(message: types.Message, state: FSMContext):
     url = data['url']
     nick = data['nick']
     await state.finish()
-    await message.answer('Обучаем модель')
+    await message.answer('Обучаем модель.\nОбычно 10-20 мин.')
     score, anime_name = predict_anime_score.pred_res(nick=nick, anime_url=url)
-    await message.answer(f'{nick} predicted score for "{anime_name}": {score}')
+    await message.answer(f'Согласно предсказанию {nick} поставил бы "{anime_name}": {score}')
+
+
+async def edit_msg(message: types.Message):
+    await message.edit_text(f'Прогресс: {1}%')
 
 
 def register_handlers(dp: Dispatcher):
@@ -108,16 +117,14 @@ async def url_find(message: types.Message, state: FSMContext):
     nick = data['nick']
     await state.finish()
     score, anime_name = predict_anime_score.pred_res(nick=nick, anime_url=url)
-    await message.answer(f'{nick} predicted score for "{anime_name}": {score}')
+    await message.answer(f'Согласно предсказанию {nick} поставил бы "{anime_name}": {score}')
 
 
 @dp.message_handler(Text(equals='Найти'), state=None)
 async def hello3(message: types.Message):
-    await message.answer('Введите ник', reply_markup=types.ReplyKeyboardRemove())
+    message.answer('Введите ник', reply_markup=types.ReplyKeyboardRemove())
     await Find.wait_for_nick.set()
     await message.answer('Начинаем поиск данных')
-
-
 
 
 executor.start_polling(dp, skip_updates=True)

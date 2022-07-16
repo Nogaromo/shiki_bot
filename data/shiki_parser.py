@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
 import requests
 import time
 import os
@@ -45,13 +46,11 @@ class Shikiparser():
     async def get_page_data(self, session, url):
         async with session.get(url=url, headers=self.headers) as response:
             response_text = await response.text()
-            print(response.status)
             epn = None
             el_k = -1
             rating = -1
             soup = BeautifulSoup(response_text, 'lxml')
             h1 = soup.find('h1').text
-            print(h1)
             info = soup.find('div', class_='b-entry-info')
             anime_info_1 = info.find_all('div', class_='key')
             anime_info_2 = info.find_all('div', class_='value')
@@ -86,13 +85,16 @@ class Shikiparser():
                 self.rating.append(np.nan)
             self.ep_num.append(epn)
 
-    @property
-    async def gather_data(self):
+    async def gather_data(self, bot, msg):
         async with aiohttp.ClientSession() as session:
             page_number = 0
             tasks = []
             for url in tqdm(self.url_list):
                 task = asyncio.create_task(self.get_page_data(session, url))
+                progress = round(100 * page_number / len(self.url_list), 7)
+                await bot.edit_message_text(
+                    f'Начинаем обработку списка.\nПрогресс: {progress}%',
+                    chat_id=msg.chat.id, message_id=msg.message_id)
                 page_number += 1
                 tasks.append(task)
                 await asyncio.sleep(1.35)
@@ -259,9 +261,9 @@ class Shikiparser():
                     self.rating.append(np.nan)
                 self.ep_num.append(epn)
 
-    async def do(self):
+    async def do(self, bot, msg):
         self.my_list
-        await self.gather_data
+        await self.gather_data(bot=bot, msg=msg)
         self.work_with_data
 
     async def main(self, method='async'):

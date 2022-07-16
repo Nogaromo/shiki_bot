@@ -5,7 +5,6 @@ import requests
 from bs4 import BeautifulSoup
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
-from progress.bar import Bar
 from tqdm import tqdm
 import json
 from string import punctuation
@@ -157,7 +156,6 @@ def params(data):
     y = data['Оценка пользователя']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     grid = [range(2, 9), range(2, 9)]
-    #bar = Bar('Progress of getting best parameters', max=len(grid[0]) * len(grid[1]))
     best_params = []
     best_score = -1
     for depth in tqdm(grid[0]):
