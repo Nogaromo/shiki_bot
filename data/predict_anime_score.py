@@ -148,18 +148,22 @@ def get_anime_name(anime_url):
     page = requests.get(url=anime_url, headers=headers)
     soup = BeautifulSoup(page.text, "lxml")
     anime_name = soup.find('h1').text
-    return anime_name[anime_name.find('/')+2:]
+    name_tmp = soup.find('header', class_='head')
+    name = name_tmp.find('meta').get('content')
+    return name
 
 
-def params(data):
+async def params(data, msg, bot):
     X = data.drop('Оценка пользователя', axis=1)
     y = data['Оценка пользователя']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     grid = [range(2, 9), range(2, 9)]
     best_params = []
     best_score = -1
-    for depth in tqdm(grid[0]):
-        for l2 in tqdm(grid[1]):
+    i = 0
+    for depth in grid[0]:
+        for l2 in grid[1]:
+            i += 1
             model = CatBoostClassifier(
                 iterations=2500,
                 loss_function='MultiClass',
@@ -174,23 +178,24 @@ def params(data):
                 plot=False)
             pred = model.predict(X_test)
             score = f1_score(y_test, pred, average="weighted")
+            progress = round(100 * i / 49, 7)
+            await bot.edit_message_text(
+                f'Обучаем модель.\nПрогресс: {progress}%',
+                chat_id=msg.chat.id, message_id=msg.message_id)
             if score > best_score:
                 best_score = score
-                best_params = []
-                best_params.append([depth, l2])
+                best_params = [[depth, l2]]
     return best_params
 
 
-def learning_and_saving(data, fname, saved_models, nick):
-    print('Learning model')
+async def learning_and_saving(data, fname, saved_models, nick, msg, bot):
     X = data.drop('Оценка пользователя', axis=1)
     y = data['Оценка пользователя']
-    p = params(data)
+    p = await params(data, msg, bot)
     best_depth, best_l2 = p[0][0], p[0][1]
     model = CatBoostClassifier(iterations=2500, learning_rate=0.1, depth=best_depth, l2_leaf_reg=best_l2,
                                loss_function='MultiClass', logging_level='Silent')
     model.fit(X, y)
-    print('Saving model')
     model.save_model(fname, format="cbm", export_parameters=None, pool=None)
     with open('list_of_saved_models.json', 'w', encoding='utf-8') as file:
         nicks = saved_models['saved models']
@@ -204,27 +209,22 @@ def learning_and_saving(data, fname, saved_models, nick):
     return model
 
 
-def pred_res(nick, anime_url, retrain='False'):
+async def pred_res(nick, anime_url, msg, bot, retrain='False'):
     nick_fused = nick.translate(str.maketrans('', '', punctuation))
     fname = f'user_data\\{nick_fused}\\{nick_fused}-model'
     model_load = CatBoostClassifier()
-    print('Data processing')
     df = pd.read_json(f'user_data\\{nick_fused}\\{nick_fused}-anime_list_data.json')
     data = data_processing(df)
     anime_vector = data_processing(get_anime_info(anime_url))
     with open('list_of_saved_models.json', 'r', encoding='utf-8') as file:
         saved_models = json.load(file)
     if retrain == 'False':
-        print('Checking if pretrained model exists')
         if nick in saved_models['saved models']:
-            print('Model found')
             model = model_load.load_model(fname, format="cbm")
         else:
-            print('No model found')
-            model = learning_and_saving(data, fname, saved_models, nick)
+            model = await learning_and_saving(data, fname, saved_models, nick, msg, bot)
     else:
-        model = learning_and_saving(data, fname, saved_models, nick)
+        model = await learning_and_saving(data, fname, saved_models, nick, msg, bot)
     pred = model.predict(anime_vector)[0][-1]
-    print('Getting anime title from url')
     anime_name = get_anime_name(anime_url)
     return pred, anime_name

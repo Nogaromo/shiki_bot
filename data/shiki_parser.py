@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
 import requests
 import time
 import os
@@ -50,7 +49,6 @@ class Shikiparser():
             el_k = -1
             rating = -1
             soup = BeautifulSoup(response_text, 'lxml')
-            h1 = soup.find('h1').text
             info = soup.find('div', class_='b-entry-info')
             anime_info_1 = info.find_all('div', class_='key')
             anime_info_2 = info.find_all('div', class_='value')
@@ -90,12 +88,12 @@ class Shikiparser():
             page_number = 0
             tasks = []
             for url in tqdm(self.url_list):
+                page_number += 1
                 task = asyncio.create_task(self.get_page_data(session, url))
                 progress = round(100 * page_number / len(self.url_list), 7)
                 await bot.edit_message_text(
                     f'Начинаем обработку списка.\nПрогресс: {progress}%',
                     chat_id=msg.chat.id, message_id=msg.message_id)
-                page_number += 1
                 tasks.append(task)
                 await asyncio.sleep(1.35)
             await asyncio.gather(*tasks)
@@ -116,10 +114,8 @@ class Shikiparser():
             soup = BeautifulSoup(page.text, "lxml")
             if soup.find('p') is not None:
                 if soup.find('p').text == 'You are not authorized to access this page.':
-                    print('Нет доступа к странице')
                     break
             if soup.find('p', class_='b-nothing_here') is not None:
-                print('Весь список получен. Начинаем анализ списка.')
                 break
             all_names = soup.find_all('tr')
             all_grades = soup.find_all('td')
@@ -140,7 +136,6 @@ class Shikiparser():
                 href = anime.get('href')
                 hrefs.append(href)
 
-            print(f'Номер страницы: {page_number}')
             page_number += 1
         hent_page = 1
         hent_count = 0
@@ -151,7 +146,6 @@ class Shikiparser():
             soup = BeautifulSoup(page.text, "lxml")
             if soup.find('p') is not None:
                 if soup.find('p').text == 'You are not authorized to access this page.':
-                    print('Нет доступа к странице.')
                     break
             if soup.find('p', class_='b-nothing_here') is not None:
                 break
@@ -160,7 +154,6 @@ class Shikiparser():
                 hname = anime.find('a').get('href')
                 hnames.append(hname)
             if hent_page == 1:
-                print('Удаляем хентай.')
                 hent_count = 1
             hent_page += 1
         for i in range(len(hrefs)):
@@ -171,7 +164,6 @@ class Shikiparser():
             hrefs_ = [v for v in hrefs if v == v]
             self.url_list = ['https://shikimori.one' + x for x in hrefs_]
             self.grades_list = [v for v in grades if v == v]
-            print('Хентай удалён.\n')
         else:
             self.url_list = ['https://shikimori.one' + x for x in hrefs]
             self.grades_list = grades
@@ -223,7 +215,6 @@ class Shikiparser():
                 continue
 
         if len(trouble_urls) != 0:
-            print(f'Найдены проблемные ссылки. Повторяем запросы для них. Количество ссылок: {len(trouble_urls)}')
             for anime_url in tqdm(trouble_urls):
                 epn = None
                 el_k = -1
@@ -267,14 +258,10 @@ class Shikiparser():
         self.work_with_data
 
     async def main(self, method='async'):
-        #shiki = Shikiparser(nick=self.nick)
         nick_fused = self.nick.translate(str.maketrans('', '', punctuation))
-        time1 = time.time()
         self.my_list
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         asyncio.run(self.gather_data)
         df = self.work_with_data
         os.makedirs(nick_fused, exist_ok=True)
-        print(f'Затраченное время: {round((time.time()-time1)/60, 2)} мин.')
         df.to_json(f'{nick_fused}\\{nick_fused}-anime_list_data.json', force_ascii=False, indent=4)
-

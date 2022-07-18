@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta
 import os
 import json
 from aiogram import Bot, types
+from sklearn.model_selection import train_test_split
 from aiogram.dispatcher import Dispatcher, FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils import executor
@@ -55,9 +55,7 @@ async def nick_got(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['nick'] = message.text
     nick = data['nick']
-    print(nick)
     msg = await message.answer('Начинаем обработку списка')
-    print(msg.message_id)
     await shiki_parser.Shikiparser(nick=nick).do(bot, msg)
     await Nickname.next()
     await message.answer('Введите ссылку')
@@ -70,13 +68,9 @@ async def url_got(message: types.Message, state: FSMContext):
     url = data['url']
     nick = data['nick']
     await state.finish()
-    await message.answer('Обучаем модель.\nОбычно 10-20 мин.')
-    score, anime_name = predict_anime_score.pred_res(nick=nick, anime_url=url)
+    msg = await message.answer('Обучаем модель.\nОбычно 10-20 мин.')
+    score, anime_name = await predict_anime_score.pred_res(nick=nick, anime_url=url, msg=msg, bot=bot, retrain='')
     await message.answer(f'Согласно предсказанию {nick} поставил бы "{anime_name}": {score}')
-
-
-async def edit_msg(message: types.Message):
-    await message.edit_text(f'Прогресс: {1}%')
 
 
 def register_handlers(dp: Dispatcher):
@@ -93,7 +87,6 @@ async def nick_find(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['nick'] = message.text
     nick = data['nick']
-    print(nick)
     with open('list_of_saved_models.json', 'r', encoding='utf-8') as file:
         saved_models = json.load(file)
     if nick in saved_models['saved models']:
@@ -116,15 +109,15 @@ async def url_find(message: types.Message, state: FSMContext):
     url = data['url']
     nick = data['nick']
     await state.finish()
-    score, anime_name = predict_anime_score.pred_res(nick=nick, anime_url=url)
+    msg = await message.answer('Получаем оценку.')
+    score, anime_name = await predict_anime_score.pred_res(nick=nick, anime_url=url, msg=msg, bot=bot)
     await message.answer(f'Согласно предсказанию {nick} поставил бы "{anime_name}": {score}')
 
 
 @dp.message_handler(Text(equals='Найти'), state=None)
 async def hello3(message: types.Message):
-    message.answer('Введите ник', reply_markup=types.ReplyKeyboardRemove())
+    await message.answer('Введите ник', reply_markup=types.ReplyKeyboardRemove())
     await Find.wait_for_nick.set()
-    await message.answer('Начинаем поиск данных')
 
 
 executor.start_polling(dp, skip_updates=True)
