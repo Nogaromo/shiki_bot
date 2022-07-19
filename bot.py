@@ -1,7 +1,7 @@
 import os
 import json
 from aiogram import Bot, types
-from sklearn.model_selection import train_test_split
+import config
 from aiogram.dispatcher import Dispatcher, FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils import executor
@@ -11,7 +11,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 
 storage = MemoryStorage()
-bot = Bot(token=os.getenv('TOKEN'))
+bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot, storage=storage)
 
 
@@ -24,6 +24,13 @@ class Find(StatesGroup):
     wait_for_nick = State()
     wait_for_url = State()
 
+
+async def on_startup(dp):
+    await bot.set_webhook(config.URl_APP)
+
+
+async def on_shutdown(dp):
+    await bot.delete_webhook()
 
 @dp.message_handler(commands='start')
 async def commands_start(message: types.Message):
@@ -120,4 +127,6 @@ async def hello3(message: types.Message):
     await Find.wait_for_nick.set()
 
 
-executor.start_polling(dp, skip_updates=True)
+executor.start_webhook(dispatcher=dp, skip_updates=True, webhook_path='', on_startup=on_startup,
+                       on_shutdown=on_shutdown, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
