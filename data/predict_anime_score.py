@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 import json
 from string import punctuation
 import warnings
@@ -210,9 +211,9 @@ async def learning_and_saving(data, fname, saved_models, nick, msg, bot):
 
 async def pred_res(nick, anime_url, msg, bot, retrain='False'):
     nick_fused = nick.translate(str.maketrans('', '', punctuation))
-    fname = f'user_data\{nick_fused}\{nick_fused}-model'
+    fname = f'user_data\\{nick_fused}\\{nick_fused}-model'
     model_load = CatBoostClassifier()
-    df = pd.read_json(f'user_data\{nick_fused}\{nick_fused}-anime_list_data.json')
+    df = pd.read_json(f'user_data\\{nick_fused}\\{nick_fused}-anime_list_data.json')
     data = data_processing(df)
     anime_vector = data_processing(get_anime_info(anime_url))
     with open('list_of_saved_models.json', 'r', encoding='utf-8') as file:

@@ -39,8 +39,8 @@ class Shikiparser():
         df.loc[df['Рейтинг'] == "R+. В РФ только по достижению 18 лет.", "Рейтинг"] = "R+"
         df.loc[df['Рейтинг'] == "PG-13. В РФ только по достижению 18 лет.", "Рейтинг"] = "PG-13"
         nick_fused = self.nick.translate(str.maketrans('', '', punctuation))
-        os.makedirs(f'user_data\{nick_fused}', exist_ok=True)
-        df.to_json(f'user_data\{nick_fused}\{nick_fused}-anime_list_data.json', force_ascii=False, indent=4)
+        os.makedirs(f'user_data\\{nick_fused}', exist_ok=True)
+        df.to_json(f'user_data\\{nick_fused}\\{nick_fused}-anime_list_data.json', force_ascii=False, indent=4)
 
     async def get_page_data(self, session, url):
         async with session.get(url=url, headers=self.headers) as response:
