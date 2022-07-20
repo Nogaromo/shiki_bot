@@ -33,18 +33,18 @@ class Shikiparser():
         dictionary = {'Тип': self.anime_type, 'Эпизоды': self.ep_num, 'Жанры': self.genres_all,
                       'Рейтинг': self.rating,
                       'Оценка сайта': self.shiki_score, 'Оценка пользователя': self.grades_list}
-        print(len(dictionary['Тип']),
+        '''print(len(dictionary['Тип']),
               len(dictionary['Эпизоды']),
               len(dictionary['Жанры']),
               len(dictionary['Рейтинг']),
               len(dictionary['Оценка сайта']),
-              len(dictionary['Оценка пользователя']))
+              len(dictionary['Оценка пользователя']))'''
         df = pd.DataFrame.from_dict(dictionary)
         df.loc[df['Рейтинг'] == "R-17. В РФ только по достижению 18 лет.", "Рейтинг"] = "R-17"
         df.loc[df['Рейтинг'] == "R+. В РФ только по достижению 18 лет.", "Рейтинг"] = "R+"
         df.loc[df['Рейтинг'] == "PG-13. В РФ только по достижению 18 лет.", "Рейтинг"] = "PG-13"
         nick_fused = self.nick.translate(str.maketrans('', '', punctuation))
-        print(df)
+        #print(df)
         os.makedirs(f'user_data\\{nick_fused}', exist_ok=True)
         df.to_json(f'user_data\\{nick_fused}\\{nick_fused}-anime_list_data.json', force_ascii=False, indent=4)
 
@@ -56,7 +56,7 @@ class Shikiparser():
             rating = -1
             soup = BeautifulSoup(response_text, 'lxml')
             h1 = soup.find('h1').text
-            print(h1)
+            #print(h1)
             info = soup.find('div', class_='b-entry-info')
             anime_info_1 = info.find_all('div', class_='key')
             anime_info_2 = info.find_all('div', class_='value')
@@ -145,7 +145,6 @@ class Shikiparser():
                 hrefs.append(href)
 
             page_number += 1
-        print(len(grades))
         hent_page = 1
         hent_count = 0
         while True:
@@ -172,17 +171,12 @@ class Shikiparser():
         if hent_count == 1:
             hrefs_ = [v for v in hrefs if v == v]
             self.url_list = ['https://shikimori.one' + x for x in hrefs_]
-            print(len(grades))
-            #self.grades_list = [v for v in grades if v == v]
             for grade in grades:
                 if grade != -1:
                     self.grades_list.append(grade)
-            #self.grades_list = grades != -1
-            print(len(self.grades_list))
         else:
             self.url_list = ['https://shikimori.one' + x for x in hrefs]
             self.grades_list = grades
-            print(len(self.grades_list))
 
 
     @property
