@@ -33,6 +33,12 @@ class Shikiparser():
         dictionary = {'Тип': self.anime_type, 'Эпизоды': self.ep_num, 'Жанры': self.genres_all,
                       'Рейтинг': self.rating,
                       'Оценка сайта': self.shiki_score, 'Оценка пользователя': self.grades_list}
+        print(len(dictionary['Тип']),
+              len(dictionary['Эпизоды']),
+              len(dictionary['Жанры']),
+              len(dictionary['Рейтинг']),
+              len(dictionary['Оценка сайта']),
+              len(dictionary['Оценка пользователя']))
         df = pd.DataFrame.from_dict(dictionary)
         df.loc[df['Рейтинг'] == "R-17. В РФ только по достижению 18 лет.", "Рейтинг"] = "R-17"
         df.loc[df['Рейтинг'] == "R+. В РФ только по достижению 18 лет.", "Рейтинг"] = "R+"
@@ -51,8 +57,6 @@ class Shikiparser():
             soup = BeautifulSoup(response_text, 'lxml')
             h1 = soup.find('h1').text
             print(h1)
-            if h1 == 'Эта страница содержит "взрослый", просматривать который могут только совершеннолетние пользователи.':
-                print(url)
             info = soup.find('div', class_='b-entry-info')
             anime_info_1 = info.find_all('div', class_='key')
             anime_info_2 = info.find_all('div', class_='value')
@@ -99,7 +103,7 @@ class Shikiparser():
                     f'Начинаем обработку списка.\nПрогресс: {progress}%',
                     chat_id=msg.chat.id, message_id=msg.message_id)
                 tasks.append(task)
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(1.35)
             await asyncio.gather(*tasks)
 
     @property
@@ -141,11 +145,12 @@ class Shikiparser():
                 hrefs.append(href)
 
             page_number += 1
+        print(len(grades))
         hent_page = 1
         hent_count = 0
         while True:
             time.sleep(1)
-            url = f'https://shikimori.one/{nick}/list/anime/rating/rx/mylist/completed/order-by/rate_score/page/{hent_page}'
+            url = f'https://shikimori.one/{nick}/list/anime/rating/r_plus,rx/mylist/completed/order-by/rate_score/page/{hent_page}'
             page = requests.get(url, headers=self.headers)
             soup = BeautifulSoup(page.text, "lxml")
             if soup.find('p') is not None:
@@ -157,20 +162,28 @@ class Shikiparser():
             for anime in hurls:
                 hname = anime.find('a').get('href')
                 hnames.append(hname)
-            if hent_page == 1:
+            if len(hnames) != 1:
                 hent_count = 1
             hent_page += 1
         for i in range(len(hrefs)):
             if hrefs[i] in hnames:
                 hrefs[i] = np.nan
-                grades[i] = np.nan
+                grades[i] = -1
         if hent_count == 1:
             hrefs_ = [v for v in hrefs if v == v]
             self.url_list = ['https://shikimori.one' + x for x in hrefs_]
-            self.grades_list = [v for v in grades if v == v]
+            print(len(grades))
+            #self.grades_list = [v for v in grades if v == v]
+            for grade in grades:
+                if grade != -1:
+                    self.grades_list.append(grade)
+            #self.grades_list = grades != -1
+            print(len(self.grades_list))
         else:
             self.url_list = ['https://shikimori.one' + x for x in hrefs]
             self.grades_list = grades
+            print(len(self.grades_list))
+
 
     @property
     def parse_all_animes_in_the_list(self):

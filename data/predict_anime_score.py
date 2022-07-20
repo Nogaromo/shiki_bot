@@ -5,7 +5,6 @@ import requests
 from bs4 import BeautifulSoup
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
-from tqdm import tqdm
 import json
 from string import punctuation
 import warnings
@@ -227,4 +226,4 @@ async def pred_res(nick, anime_url, msg, bot, retrain='False'):
         model = await learning_and_saving(data, fname, saved_models, nick, msg, bot)
     pred = model.predict(anime_vector)[0][-1]
     anime_name = get_anime_name(anime_url)
-    return pred, anime_name
+    return int(pred), anime_name
