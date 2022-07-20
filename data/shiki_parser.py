@@ -49,6 +49,8 @@ class Shikiparser():
             el_k = -1
             rating = -1
             soup = BeautifulSoup(response_text, 'lxml')
+            h1 = soup.find('h1').text
+            print(h1)
             info = soup.find('div', class_='b-entry-info')
             anime_info_1 = info.find_all('div', class_='key')
             anime_info_2 = info.find_all('div', class_='value')
