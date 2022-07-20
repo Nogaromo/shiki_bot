@@ -51,6 +51,8 @@ class Shikiparser():
             soup = BeautifulSoup(response_text, 'lxml')
             h1 = soup.find('h1').text
             print(h1)
+            if h1 == 'Эта страница содержит "взрослый", просматривать который могут только совершеннолетние пользователи.':
+                print(url)
             info = soup.find('div', class_='b-entry-info')
             anime_info_1 = info.find_all('div', class_='key')
             anime_info_2 = info.find_all('div', class_='value')
