@@ -25,12 +25,14 @@ class Find(StatesGroup):
     wait_for_url = State()
 
 
-async def on_startup(dp):
+'''async def on_startup(dp):
     await bot.set_webhook(config.URl_APP)
 
 
 async def on_shutdown(dp):
     await bot.delete_webhook()
+'''
+
 
 @dp.message_handler(commands='start')
 async def commands_start(message: types.Message):
@@ -127,6 +129,5 @@ async def hello3(message: types.Message):
     await Find.wait_for_nick.set()
 
 
-executor.start_webhook(dispatcher=dp, skip_updates=True, webhook_path='', on_startup=on_startup,
-                       on_shutdown=on_shutdown, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+executor.start_polling(dispatcher=dp, skip_updates=True)
 
