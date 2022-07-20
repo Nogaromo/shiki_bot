@@ -8,7 +8,6 @@ from string import punctuation
 import logging
 import asyncio
 import aiohttp
-from tqdm import tqdm
 
 
 class Shikiparser():
@@ -88,7 +87,7 @@ class Shikiparser():
         async with aiohttp.ClientSession() as session:
             page_number = 0
             tasks = []
-            for url in tqdm(self.url_list):
+            for url in self.url_list:
                 page_number += 1
                 task = asyncio.create_task(self.get_page_data(session, url))
                 progress = round(100 * page_number / len(self.url_list), 7)
@@ -96,7 +95,7 @@ class Shikiparser():
                     f'Начинаем обработку списка.\nПрогресс: {progress}%',
                     chat_id=msg.chat.id, message_id=msg.message_id)
                 tasks.append(task)
-                await asyncio.sleep(1.35)
+                await asyncio.sleep(1.5)
             await asyncio.gather(*tasks)
 
     @property
@@ -173,7 +172,7 @@ class Shikiparser():
     def parse_all_animes_in_the_list(self):
         time.sleep(1)
         trouble_urls = []
-        for anime_url in tqdm(self.url_list):
+        for anime_url in self.url_list:
             epn = None
             el_k = -1
             rating = -1
@@ -216,7 +215,7 @@ class Shikiparser():
                 continue
 
         if len(trouble_urls) != 0:
-            for anime_url in tqdm(trouble_urls):
+            for anime_url in trouble_urls:
                 epn = None
                 el_k = -1
                 rating = -1
