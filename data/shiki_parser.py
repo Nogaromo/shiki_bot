@@ -117,7 +117,7 @@ class Shikiparser():
         hnames = []
         while True:
             time.sleep(1)
-            url = f'https://shikimori.one/{nick}/list/anime/mylist/completed/order-by/ranked/page/{page_number}'
+            url = f'https://shikimori.one/{nick}/list/anime/status/released,latest/mylist/completed/order-by/ranked/page/{page_number}'
             page = requests.get(url, headers=self.headers)
             soup = BeautifulSoup(page.text, "lxml")
             if soup.find('p') is not None:
@@ -149,7 +149,7 @@ class Shikiparser():
         hent_count = 0
         while True:
             time.sleep(1)
-            url = f'https://shikimori.one/{nick}/list/anime/rating/r_plus,rx/mylist/completed/order-by/rate_score/page/{hent_page}'
+            url = f'https://shikimori.one/{nick}/list/anime/status/released,latest/rating/r_plus,rx/mylist/completed/order-by/rate_score/page/{hent_page}'
             page = requests.get(url, headers=self.headers)
             soup = BeautifulSoup(page.text, "lxml")
             if soup.find('p') is not None:
