@@ -75,7 +75,7 @@ async def nick_got(message: types.Message, state: FSMContext):
     nick = data['nick']
     p = check_nickname(nick)
     print(p)
-    if p == 404:
+    if p == '404':
         await message.answer('Такого пользователя не существует.\nПроверьте введеный ник')
         await state.finish()
     msg = await message.answer('Начинаем обработку списка')
