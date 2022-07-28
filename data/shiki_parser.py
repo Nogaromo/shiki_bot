@@ -79,6 +79,7 @@ class Shikiparser():
                         score_value = soup.find('div', class_='score-value').text
                     except AttributeError:
                         print(h1)
+                        score_value = np.nan
                     self.shiki_score.append(score_value)
                     g = []
                     for genre in genres:
