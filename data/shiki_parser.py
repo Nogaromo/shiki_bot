@@ -75,7 +75,10 @@ class Shikiparser():
                     el_k = elem
                 if elem == 0:
                     genres = soup.find_all('span', class_='genre-ru')
-                    score_value = soup.find('div', class_='score-value').text
+                    try:
+                        score_value = soup.find('div', class_='score-value').text
+                    except AttributeError:
+                        print(h1)
                     self.shiki_score.append(score_value)
                     g = []
                     for genre in genres:
