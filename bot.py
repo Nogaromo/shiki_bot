@@ -16,8 +16,11 @@ def check_nickname(nick):
     url = f'https://shikimori.one/{nick}'
     page = requests.get(url, headers=headers)
     soup = BeautifulSoup(page.text, "lxml")
-    p = soup.find('p', class_='error-404')
-    return p.text
+    try:
+        p = soup.find('p', class_='error-404').text
+    except AttributeError:
+        p = 'not_404'
+    return p
 
 storage = MemoryStorage()
 bot = Bot(token=config.TOKEN)
