@@ -82,7 +82,7 @@ async def nick_got(message: types.Message, state: FSMContext):
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         keyboard.add(*start_buttons)
         await message.answer('Такого пользователя не существует.\nПроверьте введеный ник',
-                             reply_markup=types.ReplyKeyboardMarkup())
+                             reply_markup=keyboard)
         await state.finish()
     else:
         msg = await message.answer('Начинаем обработку списка')
