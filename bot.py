@@ -17,7 +17,7 @@ def check_nickname(nick):
     page = requests.get(url, headers=headers)
     soup = BeautifulSoup(page.text, "lxml")
     p = soup.find('p', class_='error-404')
-    return p
+    return p.text
 
 storage = MemoryStorage()
 bot = Bot(token=config.TOKEN)
