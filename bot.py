@@ -77,9 +77,12 @@ async def nick_got(message: types.Message, state: FSMContext):
         data['nick'] = message.text
     nick = data['nick']
     p = check_nickname(nick)
-    print(p)
     if p == '404':
-        await message.answer('Такого пользователя не существует.\nПроверьте введеный ник')
+        start_buttons = ['Найти', 'Загрузить', 'Исходный код']
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        keyboard.add(*start_buttons)
+        await message.answer('Такого пользователя не существует.\nПроверьте введеный ник',
+                             reply_markup=types.ReplyKeyboardMarkup())
         await state.finish()
     else:
         msg = await message.answer('Начинаем обработку списка')
