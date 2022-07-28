@@ -78,10 +78,11 @@ async def nick_got(message: types.Message, state: FSMContext):
     if p == '404':
         await message.answer('Такого пользователя не существует.\nПроверьте введеный ник')
         await state.finish()
-    msg = await message.answer('Начинаем обработку списка')
-    await shiki_parser.Shikiparser(nick=nick).do(bot, msg)
-    await Nickname.next()
-    await message.answer('Введите ссылку')
+    else:
+        msg = await message.answer('Начинаем обработку списка')
+        await shiki_parser.Shikiparser(nick=nick).do(bot, msg)
+        await Nickname.next()
+        await message.answer('Введите ссылку')
 
 
 @dp.message_handler(state=Nickname.wait_for_url)
