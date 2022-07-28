@@ -1,4 +1,5 @@
-import os
+import requests
+from bs4 import BeautifulSoup
 import json
 from aiogram import Bot, types
 import config
@@ -9,6 +10,14 @@ from aiogram.dispatcher.filters import Text
 from data import predict_anime_score, shiki_parser
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
+
+def check_nickname(nick):
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:100.0) Gecko/20100101 Firefox/100.0'}
+    url = f'https://shikimori.one/{nick}'
+    page = requests.get(url, headers=headers)
+    soup = BeautifulSoup(page.text, "lxml")
+    p = soup.find('p', class_='error-404')
+    return p
 
 storage = MemoryStorage()
 bot = Bot(token=config.TOKEN)
@@ -64,6 +73,11 @@ async def nick_got(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['nick'] = message.text
     nick = data['nick']
+    p = check_nickname(nick)
+    print(p)
+    if p == 404:
+        await message.answer('Такого пользователя не существует.\nПроверьте введеный ник')
+        await state.finish()
     msg = await message.answer('Начинаем обработку списка')
     await shiki_parser.Shikiparser(nick=nick).do(bot, msg)
     await Nickname.next()
